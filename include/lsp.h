@@ -7,6 +7,7 @@
 
 using json = nlohmann::json;
 
+namespace lsp {
 // jsonrpc messages
 
 class MessageHeader {
@@ -109,5 +110,7 @@ public:
 
   json to_json() const override;
 };
+
+} // namespace lsp
 
 #endif

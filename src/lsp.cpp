@@ -1,5 +1,6 @@
 #include <lsp.h>
 
+namespace lsp {
 // Parse bytes into json and construct a Message
 // TODO: maybe use std::optional ?
 std::unique_ptr<Message> Message::parse(char const *msg) {
@@ -56,3 +57,4 @@ json InitializeResponse::to_json() const {
 
   return data;
 }
+} // namespace lsp

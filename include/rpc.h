@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-#include "lsp.h"
 #include "log.h"
+#include "lsp.h"
 
 // connection
 
@@ -14,9 +14,9 @@ public:
       : in(&in), out(&out), logger(logger) {}
 
   // If the message is not valid (can not be parsed) return nullptr
-  std::unique_ptr<Message> read();
-  MessageHeader read_header();
-  void write(const Message& msg);
+  std::unique_ptr<lsp::Message> read();
+  lsp::MessageHeader read_header();
+  void write(const lsp::Message &msg);
 
 private:
   std::istream *in;

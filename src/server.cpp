@@ -17,25 +17,25 @@ void Server::stop() {
   // TODO: some signal handling ? ctrl+c ?
 }
 
-void Server::handler(const Message &message) {
-  if (message.get_kind() == Message::Kind::Request) {
-    if (auto request = static_cast<const RequestMessage *>(&message)) {
+void Server::handler(const lsp::Message &message) {
+  if (message.get_kind() == lsp::Message::Kind::Request) {
+    if (auto request = static_cast<const lsp::RequestMessage *>(&message)) {
       handle_request(*request);
     }
-  } else if (message.get_kind() == Message::Kind::Notification) {
+  } else if (message.get_kind() == lsp::Message::Kind::Notification) {
     if (auto notification =
-            static_cast<const NotificationMessage *>(&message)) {
+            static_cast<const lsp::NotificationMessage *>(&message)) {
       handle_notification(*notification);
     }
   }
 }
 
-void Server::handle_request(const RequestMessage &message) {
+void Server::handle_request(const lsp::RequestMessage &message) {
   if (message.method == "initialize") {
-    auto params = message.data.template get<InitializeParams>();
+    auto params = message.data.template get<lsp::InitializeParams>();
     logger.log("Connected client: " + params.client_info.name + " " +
                params.client_info.version);
-    InitializeResponse response(message.id);
+    lsp::InitializeResponse response(message.id);
     logger.log("Sending response ", response.to_json());
     conn.write(response);
   } else {
@@ -43,9 +43,9 @@ void Server::handle_request(const RequestMessage &message) {
   }
 }
 
-void Server::handle_notification(const NotificationMessage &message) {
+void Server::handle_notification(const lsp::NotificationMessage &message) {
   if (message.method == "textDocument/didOpen") {
-    auto params = message.data.template get<DidOpenTextDocumentParams>();
+    auto params = message.data.template get<lsp::DidOpenTextDocumentParams>();
   } else {
     logger.log("Unknown method ", message.method);
   }

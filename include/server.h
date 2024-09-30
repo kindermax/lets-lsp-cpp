@@ -3,26 +3,24 @@
 
 #include <iostream>
 
-#include "rpc.h"
 #include "log.h"
-
-// TODO: use namespace ?
+#include "rpc.h"
 
 class Server {
 public:
-    Server(std::istream& in, std::ostream& out, Logger& logger)
-    : conn(in, out, logger),
-      logger(logger) {}
+  Server(std::istream &in, std::ostream &out, Logger &logger)
+      : conn(in, out, logger), logger(logger) {}
 
-    void start();
-    void stop();
+  void start();
+  void stop();
 
-    void handler(const Message &message);
-    void handle_request(const RequestMessage &message);
-    void handle_notification(const NotificationMessage &message);
+  void handler(const lsp::Message &message);
+  void handle_request(const lsp::RequestMessage &message);
+  void handle_notification(const lsp::NotificationMessage &message);
+
 private:
-    Connection conn;
-    Logger& logger;
+  Connection conn;
+  Logger &logger;
 };
 
 #endif

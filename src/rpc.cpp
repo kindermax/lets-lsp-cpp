@@ -5,9 +5,9 @@
 #include "log.h"
 #include "rpc.h"
 
-std::unique_ptr<Message> Connection::read() {
+std::unique_ptr<lsp::Message> Connection::read() {
   logger.log("Reading message");
-  MessageHeader header = read_header();
+  lsp::MessageHeader header = read_header();
   if (header.content_length == 0) {
     logger.log("Invalid message");
     return nullptr;
@@ -19,12 +19,12 @@ std::unique_ptr<Message> Connection::read() {
   logger.log(
       "Got message: Content-Length: " + std::to_string(header.content_length) +
       "\r\n\r\n" + std::string(content.get()));
-  return Message::parse(content.get());
+  return lsp::Message::parse(content.get());
 }
 
 // Read and parse Content-Lenght: number\r\n\r\n header
-MessageHeader Connection::read_header() {
-  MessageHeader header;
+lsp::MessageHeader Connection::read_header() {
+  lsp::MessageHeader header;
 
   // TODO: debug this
   // TODO: test it
@@ -61,7 +61,7 @@ MessageHeader Connection::read_header() {
   return header;
 }
 
-void Connection::write(const Message &msg) {
+void Connection::write(const lsp::Message &msg) {
   const auto data = msg.to_json();
   const auto raw = data.dump();
   (*out) << "Content-Length: " << raw.size() << "\r\n\r\n" << raw << std::flush;
