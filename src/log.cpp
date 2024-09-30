@@ -15,4 +15,4 @@ Logger::Logger(const std::string &filename) : filename(filename) {
 }
 
 void Logger::log(const std::string &msg) { logfile << msg << std::endl; }
-void Logger::log(const std::string &msg, const json &data) { logfile << msg << data.dump() << std::endl; }
+void Logger::log(const std::string &msg, const json &data) { logfile << msg << " " << data.dump() << std::endl; }
