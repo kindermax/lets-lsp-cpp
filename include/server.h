@@ -3,13 +3,14 @@
 
 #include <iostream>
 
+#include "analysis.h"
 #include "log.h"
 #include "rpc.h"
 
 class Server {
 public:
-  Server(std::istream &in, std::ostream &out, Logger &logger)
-      : conn(in, out, logger), logger(logger) {}
+  Server(std::istream &in, std::ostream &out, Logger &logger, State &state)
+      : conn(in, out, logger), logger(logger), state(state) {}
 
   void start();
   void stop();
@@ -21,6 +22,7 @@ public:
 private:
   Connection conn;
   Logger &logger;
+  State &state;
 };
 
 #endif

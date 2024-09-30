@@ -46,6 +46,9 @@ void Server::handle_request(const lsp::RequestMessage &message) {
 void Server::handle_notification(const lsp::NotificationMessage &message) {
   if (message.method == "textDocument/didOpen") {
     auto params = message.data.template get<lsp::DidOpenTextDocumentParams>();
+    state.open_document(params.text_document_item.uri,
+                        params.text_document_item.text);
+    logger.log("Opened: " + params.text_document_item.uri);
   } else {
     logger.log("Unknown method ", message.method);
   }
