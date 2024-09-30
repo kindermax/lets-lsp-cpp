@@ -19,6 +19,7 @@ public:
 
     void handler(const Message &message);
     void handle_request(const RequestMessage &message);
+    void handle_notification(const NotificationMessage &message);
 private:
     Connection conn;
     Logger& logger;

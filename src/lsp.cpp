@@ -9,15 +9,16 @@ std::unique_ptr<Message> Message::parse(char const *msg) {
     auto method = data["method"].get<std::string>();
     if (data.contains("id")) {
       auto id = data["id"].get<std::uint32_t>();
-      return std::make_unique<RequestMessage>(id, method);
+      return std::make_unique<RequestMessage>(id, method, data);
     } else {
-      return std::make_unique<NotificationMessage>(method);
+      return std::make_unique<NotificationMessage>(method, data);
     }
   }
 
   return nullptr;
 }
 
+// TODO: rewrite this with json lib specific to_json
 json RequestMessage::to_json() const {
   json data = {
       {"jsonrpc", "2.0"},
