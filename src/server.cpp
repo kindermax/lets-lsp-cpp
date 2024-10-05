@@ -44,7 +44,9 @@ void Server::handle_request(const lsp::RequestMessage &message) {
 }
 
 void Server::handle_notification(const lsp::NotificationMessage &message) {
-  if (message.method == "textDocument/didOpen") {
+  if (message.method == "initialized") {
+    logger.log("Client connection initialized");
+  } else if (message.method == "textDocument/didOpen") {
     auto params = message.data.template get<lsp::DidOpenTextDocumentParams>();
     state.open_document(params.text_document_item.uri,
                         params.text_document_item.text);
