@@ -1,9 +1,10 @@
 #include <lsp.h>
 
 namespace lsp {
+
 // Parse bytes into json and construct a Message
 // TODO: maybe use std::optional ?
-std::unique_ptr<Message> Message::parse(char const *msg) {
+std::unique_ptr<Message> Message::parse(const std::string& msg) {
   json data = json::parse(msg);
   if (data.contains("method")) {
     // TODO: "Notification" message has no "id"

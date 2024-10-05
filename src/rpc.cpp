@@ -16,17 +16,16 @@ std::unique_ptr<lsp::Message> Connection::read() {
   }
 
   auto content = read_content(header);
-  return lsp::Message::parse(content.get());
+  return lsp::Message::parse(content.c_str());
 }
 
-std::unique_ptr<char[]>
-Connection::read_content(const lsp::MessageHeader &header) {
-  auto content = std::make_unique<char[]>(header.content_length + 1);
-  in->read(content.get(), header.content_length);
-  content[header.content_length] = '\n';
+std::string Connection::read_content(const lsp::MessageHeader &header) {
+  std::string content;
+  content.resize(header.content_length);
+  in->read(&content[0], header.content_length);
   logger.log(
       "Got message: Content-Length: " + std::to_string(header.content_length) +
-      "\r\n\r\n" + std::string(content.get()));
+      "\r\n\r\n" + content);
 
   return content;
 }
@@ -35,38 +34,27 @@ Connection::read_content(const lsp::MessageHeader &header) {
 lsp::MessageHeader Connection::read_header() {
   lsp::MessageHeader header;
 
-  // TODO: debug this
-  // TODO: test it
+  if (in->eof()) {
+    throw "Connection lost";
+  }
 
-  // TODO: maybe rewrite with getline
-  while (true) {
-    // 1. Read header
-    // assume Content
-    if (in->peek() == 'C') {
-      // Ignore 'Content-' part
-      in->ignore(8);
-      // assume Length
-      if (in->peek() == 'L') {
-        // Ignore 'Length: ' part
-        in->ignore(8);
-        // TODO: how does this conversion work ?
-        (*in) >> header.content_length;
+  std::string line;
+  while (std::getline(*in, line, '\r')) {
+    const auto sepIdx = line.find(":");
+    if (sepIdx != std::string::npos) {
+      const auto key = line.substr(0, sepIdx);
+      const auto value = line.substr(sepIdx + 1);
+      if (key == "Content-Length") {
+        header.content_length = std::stoi(value);
       }
     }
 
-    // assume \r and \n delimiters
-    char c1 = in->get();
-    char c2 = in->get();
-
-    if (c1 == '\r' && c2 == '\n') {
-      char c3 = in->get();
-      char c4 = in->get();
-      if (c3 == '\r' && c4 == '\n') {
-        // Done parsing header
-        return header;
-      }
+    if (line == "\n") {
+      break;
     }
   }
+
+  in->get(); // consume \n
   return header;
 }
 

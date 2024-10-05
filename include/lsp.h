@@ -25,7 +25,7 @@ public:
   virtual json to_json() const = 0;
 
   // TODO: maybe make parse a pure virtual function
-  static std::unique_ptr<Message> parse(char const *data);
+  static std::unique_ptr<Message> parse(const std::string& msg);
 };
 
 class RequestMessage : public Message {
