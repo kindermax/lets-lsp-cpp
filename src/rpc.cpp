@@ -1,4 +1,5 @@
 // #include <cassert>
+#include <memory>
 #include <ostream>
 #include <string>
 
@@ -7,22 +8,30 @@
 
 std::unique_ptr<lsp::Message> Connection::read() {
   logger.log("Reading message");
-  lsp::MessageHeader header = read_header();
+
+  auto header = read_header();
   if (header.content_length == 0) {
     logger.log("Invalid message");
     return nullptr;
   }
 
-  auto content = std::make_unique<char[]>(header.content_length + 1); // + \n
+  auto content = read_content(header);
+  return lsp::Message::parse(content.get());
+}
+
+std::unique_ptr<char[]>
+Connection::read_content(const lsp::MessageHeader &header) {
+  auto content = std::make_unique<char[]>(header.content_length + 1);
   in->read(content.get(), header.content_length);
   content[header.content_length] = '\n';
   logger.log(
       "Got message: Content-Length: " + std::to_string(header.content_length) +
       "\r\n\r\n" + std::string(content.get()));
-  return lsp::Message::parse(content.get());
+
+  return content;
 }
 
-// Read and parse Content-Lenght: number\r\n\r\n header
+// Read and parse header: Content-Lenght: number\r\n\r\n
 lsp::MessageHeader Connection::read_header() {
   lsp::MessageHeader header;
 
