@@ -1,0 +1,4 @@
+shell: bash
+commands:
+  test:
+    cmd: cmake --build build && ctest --test-dir build --output-on-failure -j4
