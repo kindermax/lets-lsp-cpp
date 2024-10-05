@@ -1,10 +1,14 @@
 if(BUILD_TESTING)
-  # TODO: add GTest
   # TODO: make code as library and link to tests
-  add_executable(test_parse_message test_parse_message.cpp ../src/lsp.cpp)
+  add_executable(test_message test_message.cpp ../src/lsp.cpp)
 
-  target_link_libraries(test_parse_message
-    PRIVATE nlohmann_json::nlohmann_json )
+  target_link_libraries(
+    test_message
+    PRIVATE nlohmann_json::nlohmann_json
+    GTest::gtest_main
+  )
 
-  add_test (TestParseMessage test_parse_message)
+  include(GoogleTest)
+
+  gtest_discover_tests(test_message)
 endif()

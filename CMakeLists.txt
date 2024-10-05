@@ -7,9 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Source files
-include_directories(
-    include/
-)
+include_directories(include)
 
 set(BIN_SOURCES
     src/main.cpp
@@ -26,7 +24,15 @@ add_executable(${PROJECT_NAME} ${BIN_SOURCES})
 include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.15.2
+)
+
 FetchContent_MakeAvailable(json)
+FetchContent_MakeAvailable(googletest)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
