@@ -16,7 +16,7 @@ std::unique_ptr<lsp::Message> Connection::read() {
   }
 
   auto content = read_content(header);
-  return lsp::Message::parse(content.c_str());
+  return lsp::Message::parse(content);
 }
 
 std::string Connection::read_content(const lsp::MessageHeader &header) {

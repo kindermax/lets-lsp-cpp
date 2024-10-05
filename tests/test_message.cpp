@@ -14,7 +14,7 @@ TEST(Message, ParseRequestMessageJson) {
     }
   })";
 
-  auto msg = lsp::Message::parse(content.c_str());
+  auto msg = lsp::Message::parse(content);
   ASSERT_NE(msg, nullptr);
   EXPECT_EQ(msg->get_kind(), lsp::Message::Kind::Request);
 
@@ -31,7 +31,7 @@ TEST(Message, ParseNotificationMessageJson) {
     "params": {}
   })";
 
-  auto msg = lsp::Message::parse(content.c_str());
+  auto msg = lsp::Message::parse(content);
   ASSERT_NE(msg, nullptr);
   EXPECT_EQ(msg->get_kind(), lsp::Message::Kind::Notification);
 
