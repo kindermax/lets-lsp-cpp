@@ -2,7 +2,7 @@
 #include "lsp.h"
 
 void Server::start() {
-  logger.log("lets-lsp server started");
+  logger.log("lets-ls server started");
   while (true) {
     auto message = conn.read();
     if (message != nullptr) {
@@ -13,7 +13,7 @@ void Server::start() {
 }
 
 void Server::stop() {
-  logger.log("lets-lsp server stopped");
+  logger.log("lets-ls server stopped");
   // TODO: some signal handling ? ctrl+c ?
 }
 

@@ -54,7 +54,7 @@ json InitializeResponse::to_json() const {
        {
            {"textDocumentSync", 1} // 1 == Full
        }},
-      {"serverInfo", {{"name", "lets-lsp"}, {"version", "0.1.0"}}}};
+      {"serverInfo", {{"name", "lets-ls"}, {"version", "0.1.0"}}}};
 
   return data;
 }

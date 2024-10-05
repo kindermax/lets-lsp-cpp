@@ -8,7 +8,7 @@
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/lets-lsp
+./build/lets-ls
 ```
 
 ### Testing

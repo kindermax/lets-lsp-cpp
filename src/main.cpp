@@ -6,7 +6,7 @@
 #include "server.h"
 
 int main(int, char **) {
-  FileLogger log("/Users/max/code/projects/lets-lsp/log.txt");
+  FileLogger log("log.txt");
   State state;
   Server server(std::cin, std::cout, log, state);
 
