@@ -8,7 +8,6 @@ void Server::start() {
     if (message != nullptr) {
       handler(*message);
     }
-    // TODO: handle message/send response
   }
 }
 

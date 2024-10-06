@@ -2,6 +2,7 @@
 #define LETS_LSP_LSP_H
 
 #include <string>
+#include <variant>
 
 #include "nlohmann/json.hpp"
 
@@ -24,17 +25,16 @@ public:
   virtual Kind get_kind() const = 0;
   virtual json to_json() const = 0;
 
-  // TODO: maybe make parse a pure virtual function
   static std::unique_ptr<Message> parse(const std::string& msg);
 };
 
+using MessageId = std::variant<int, std::string>;
+
 class RequestMessage : public Message {
 public:
-  RequestMessage(int id, std::string method, json data)
-      : id(id), method(method), data(data) {}
-  // TODO: id can be int or string. For now since we are hooked it with nvim it
-  // will be int. Use variant later.
-  int id;
+  RequestMessage(MessageId id, std::string method, json data)
+      : id(id), method(method), data(std::move(data)) {}
+  MessageId id;
   std::string method;
   // data holds whole json message
   json data;
@@ -51,12 +51,6 @@ public:
   } client_info;
 };
 
-inline void from_json(const json &j, InitializeParams &params) {
-  const json &client_info = j.at("params").at("clientInfo");
-  client_info.at("name").get_to(params.client_info.name);
-  client_info.at("version").get_to(params.client_info.version);
-}
-
 class DidOpenTextDocumentParams {
 public:
   struct TextDocumentItem {
@@ -67,20 +61,12 @@ public:
   } text_document_item;
 };
 
-inline void from_json(const json &j, DidOpenTextDocumentParams &params) {
-  const json &text_document = j.at("params").at("textDocument");
-  text_document.at("uri").get_to(params.text_document_item.uri);
-  text_document.at("languageId").get_to(params.text_document_item.language_id);
-  text_document.at("version").get_to(params.text_document_item.version);
-  text_document.at("text").get_to(params.text_document_item.text);
-}
-
 class ResponseMessage : public Message {
 public:
-  explicit ResponseMessage(const int id) : id(id) {}
-  ResponseMessage(const int id, json result)
+  explicit ResponseMessage(const MessageId id) : id(id) {}
+  ResponseMessage(const MessageId id, json result)
       : id(id), result(std::move(result)) {}
-  int id;
+  MessageId id;
   json result;
 
   Kind get_kind() const override { return Kind::Response; }
@@ -90,7 +76,7 @@ public:
 class NotificationMessage : public Message {
 public:
   NotificationMessage(std::string method, json data)
-      : method(method), data(data) {}
+      : method(method), data(std::move(data)) {}
 
   std::string method;
   json data;
@@ -99,18 +85,37 @@ public:
   json to_json() const override;
 };
 
-// TODO: now it would be nice to reuse ResponseMessage to json here
-// TODO: maybe use autoconversion
-// https://json.nlohmann.me/features/arbitrary_types/
 class InitializeResponse : public ResponseMessage {
 public:
-  explicit InitializeResponse(int id) : ResponseMessage(id) {}
-  InitializeResponse(int id, const json &result)
-      : ResponseMessage(id, result) {}
+  explicit InitializeResponse(MessageId id) : ResponseMessage(id) {}
 
   json to_json() const override;
 };
 
+void from_json(const json &j, InitializeParams &params);
+void from_json(const json &j, DidOpenTextDocumentParams &params);
+
 } // namespace lsp
+
+namespace nlohmann {
+    template <>
+    struct adl_serializer<lsp::MessageId> {
+        static void to_json(json& j, const lsp::MessageId& value) {
+          j = std::visit([](auto&& value) -> json {
+            return value;
+          }, value);
+        }
+
+        static void from_json(const json& j, lsp::MessageId& value) {
+          if (j.is_number()) {
+            value = j.get<int>();
+          } else if (j.is_string()) {
+            value = j.get<std::string>();
+          } else {
+            throw std::invalid_argument("Unsupported JSON type for MessageId");
+          }
+        }
+    };
+}
 
 #endif
