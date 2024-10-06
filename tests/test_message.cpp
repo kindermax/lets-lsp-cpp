@@ -19,10 +19,30 @@ TEST(Message, ParseRequestMessageJson) {
   EXPECT_EQ(msg->get_kind(), lsp::Message::Kind::Request);
 
   auto request = static_cast<lsp::RequestMessage *>(msg.get());
-  EXPECT_EQ(request->id, 1);
+  EXPECT_EQ(std::get<int>(request->id), 1);
   EXPECT_EQ(request->method, "initialize");
   EXPECT_EQ(request->data["params"]["clientInfo"]["name"], "lets-ls");
   EXPECT_EQ(request->data["params"]["clientInfo"]["version"], "0.1.0");
+}
+
+TEST(Message, ParseRequestMessageJsonStringId) {
+  std::string content = R"({
+    "method": "initialize",
+    "id": "1",
+    "params": {
+      "clientInfo": {
+        "name": "lets-ls",
+        "version": "0.1.0"
+      }
+    }
+  })";
+
+  auto msg = lsp::Message::parse(content);
+  ASSERT_NE(msg, nullptr);
+  EXPECT_EQ(msg->get_kind(), lsp::Message::Kind::Request);
+
+  auto request = static_cast<lsp::RequestMessage *>(msg.get());
+  EXPECT_EQ(std::get<std::string>(request->id), "1");
 }
 
 TEST(Message, ParseNotificationMessageJson) {

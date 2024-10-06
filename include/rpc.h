@@ -6,8 +6,6 @@
 #include "log.h"
 #include "lsp.h"
 
-// connection
-
 class Connection {
 public:
   Connection(std::istream &in, std::ostream &out, Logger &logger)
