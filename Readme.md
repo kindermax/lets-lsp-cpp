@@ -8,7 +8,7 @@
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/lets-ls
+./build/lets_ls --file /path/to/log.txt
 ```
 
 ### Testing
@@ -39,7 +39,7 @@ In order for nvim-lspconfig to recognize lets_lsp we must define config for `let
 ```
 require("lspconfig.configs").lets_ls = {
   default_config = {
-    cmd = { "/Users/max/code/projects/lets-ls-cpp/build/lets-ls" },
+    cmd = { "/Users/max/code/projects/lets-ls-cpp/build/lets_ls" },
     filetypes = { "yaml.lets" },
     root_dir = util.root_pattern("lets.yaml"),
     settings = {},

@@ -1,4 +1,7 @@
 shell: bash
 commands:
   test:
+    description: Run tests with CTest
+    options: |
+      Usage: lets test
     cmd: cmake --build build && ctest --test-dir build --output-on-failure -j4

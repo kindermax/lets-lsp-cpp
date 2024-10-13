@@ -8,7 +8,7 @@ TEST(Message, ParseRequestMessageJson) {
     "id": 1,
     "params": {
       "clientInfo": {
-        "name": "lets-ls",
+        "name": "lets_ls",
         "version": "0.1.0"
       }
     }
@@ -21,7 +21,7 @@ TEST(Message, ParseRequestMessageJson) {
   auto request = static_cast<lsp::RequestMessage *>(msg.get());
   EXPECT_EQ(std::get<int>(request->id), 1);
   EXPECT_EQ(request->method, "initialize");
-  EXPECT_EQ(request->data["params"]["clientInfo"]["name"], "lets-ls");
+  EXPECT_EQ(request->data["params"]["clientInfo"]["name"], "lets_ls");
   EXPECT_EQ(request->data["params"]["clientInfo"]["version"], "0.1.0");
 }
 
@@ -31,7 +31,7 @@ TEST(Message, ParseRequestMessageJsonStringId) {
     "id": "1",
     "params": {
       "clientInfo": {
-        "name": "lets-ls",
+        "name": "lets_ls",
         "version": "0.1.0"
       }
     }
