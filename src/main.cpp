@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
   }
 
   FileLogger log(log_file);
-  State state;
+  State state(log);
   Server server(std::cin, std::cout, log, state);
 
   server.start();

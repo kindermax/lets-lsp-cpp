@@ -2,7 +2,7 @@
 #include "lsp.h"
 
 void Server::start() {
-  logger.log("lets-ls server started");
+  logger.log("lets_ls server started");
   while (true) {
     auto message = conn.read();
     if (message != nullptr) {
@@ -12,7 +12,7 @@ void Server::start() {
 }
 
 void Server::stop() {
-  logger.log("lets-ls server stopped");
+  logger.log("lets_ls server stopped");
   // TODO: some signal handling ? ctrl+c ?
 }
 
@@ -51,6 +51,8 @@ void Server::handle_request(const lsp::RequestMessage &message) {
     auto definition_result =
         state.definition(params.text_document.uri, params.position);
     lsp::DefinitionResponse response(message.id, definition_result);
+    logger.log("Sending response to textDocument/definition ",
+               response.to_json());
     conn.write(response);
   } else {
     // TODO: handle shutdown method

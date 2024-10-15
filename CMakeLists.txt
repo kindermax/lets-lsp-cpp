@@ -43,12 +43,53 @@ FetchContent_Declare(
     GIT_TAG        v3.1
 )
 
+FetchContent_Declare(
+    treesitter
+    GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter
+    GIT_TAG        v0.24.3
+)
+
+FetchContent_Declare(
+    treesitter-yaml
+    GIT_REPOSITORY https://github.com/ikatyang/tree-sitter-yaml.git
+    GIT_TAG        v0.5.0
+)
+
 FetchContent_MakeAvailable(json)
 FetchContent_MakeAvailable(googletest)
 FetchContent_MakeAvailable(fmt)
 FetchContent_MakeAvailable(argparse)
+FetchContent_MakeAvailable(treesitter)
+FetchContent_MakeAvailable(treesitter-yaml)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json fmt::fmt argparse)
+# setup tree-sitter
+add_library(tree-sitter ${treesitter_SOURCE_DIR}/lib/src/lib.c)
+target_include_directories(tree-sitter PUBLIC ${treesitter_SOURCE_DIR}/lib/src ${treesitter_SOURCE_DIR}/lib/include)
+
+# setup tree-sitter-yaml
+add_library(tree-sitter-yaml
+  ${treesitter-yaml_SOURCE_DIR}/src/parser.c
+  ${treesitter-yaml_SOURCE_DIR}/src/scanner.cc
+)
+
+target_include_directories(tree-sitter-yaml
+  PRIVATE
+    # parser.h is stored within the src directory, so we need to include
+    # src in the search paths
+    $<BUILD_INTERFACE:${treesitter-yaml_SOURCE_DIR}/src>
+)
+
+target_link_libraries(tree-sitter-yaml INTERFACE tree-sitter)
+
+# link dependencies to main target
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    nlohmann_json::nlohmann_json
+    fmt::fmt
+    argparse
+    tree-sitter
+    tree-sitter-yaml
+)
 
 # Testing
 include(CTest)
