@@ -29,7 +29,12 @@ int main(int argc, char *argv[]) {
   State state(log);
   Server server(std::cin, std::cout, log, state);
 
-  server.start();
+  try {
+    server.start();
+  } catch (...) {
+    log.log("lets_ls failed");
+    return 1;
+  }
 
   return 0;
 }
