@@ -1,0 +1,36 @@
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - assigned
+      - opened
+      - synchronize
+      - reopened
+
+env:
+  CTEST_NO_TESTS_ACTION: error
+  CTEST_PARALLEL_LEVEL: 0
+  CMAKE_BUILD_PARALLEL_LEVEL: 4
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+name: Test
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        shared: [true, false]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Lets
+        uses: lets-cli/lets-action@v1.1
+        with:
+          version: latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Config shared=${{ matrix.shared }}
+        run: cmake -Bbuild -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+      - name: Run tests
+        run: lets test
