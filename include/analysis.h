@@ -17,7 +17,7 @@ private:
 public:
   State(Logger &logger) : logger(logger) {}
 
-  void open_document(const std::string uri, const std::string content);
+  void open_document(const std::string& uri, const std::string& content);
   void update_document(const std::string uri, const std::string content);
   std::optional<lsp::HoverResult> hover(const std::string &uri,
                                         const lsp::Position &position);
@@ -25,10 +25,10 @@ public:
   definition(const std::string &uri, const lsp::Position &position);
 };
 
-bool is_mixins_root_node(TSNode root_node, TSParser *parser,
+bool is_mixins_root_node(TSNode root_node,
                          const std::string &doc, const lsp::Position &position);
 
-std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
+std::optional<std::string> extract_filename(TSNode root_node,
                                             const std::string &yaml_content,
-                                            int cursor_line);
+                                            const lsp::Position &pos);
 #endif

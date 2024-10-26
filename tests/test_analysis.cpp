@@ -48,7 +48,7 @@ commands:
   };
 
   for (const auto &test : tests) {
-    ASSERT_EQ(is_mixins_root_node(root_node, parser, doc, test.first),
+    ASSERT_EQ(is_mixins_root_node(root_node, doc, test.first),
               test.second);
   }
 
@@ -84,7 +84,7 @@ commands:
   };
 
   for (const auto &test : tests) {
-    ASSERT_EQ(extract_filename(root_node, parser, doc, test.first.line),
+    ASSERT_EQ(extract_filename(root_node, doc, test.first),
               test.second);
   }
 

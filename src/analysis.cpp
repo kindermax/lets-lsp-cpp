@@ -15,8 +15,8 @@ extern "C" {
 TSLanguage *tree_sitter_yaml();
 }
 
-void State::open_document(const std::string uri, const std::string content) {
-  documents[std::move(uri)] = std::move(content);
+void State::open_document(const std::string& uri, const std::string& content) {
+  documents[uri] = content;
 }
 
 void State::update_document(const std::string uri, const std::string content) {
@@ -34,15 +34,15 @@ std::optional<lsp::HoverResult> State::hover(const std::string &uri,
 };
 
 std::vector<TSQueryCapture>
-run_query(TSNode root_node, const std::string &query_string, TSParser *parser) {
-  uint32_t errorOffset;
-  TSQueryError errorType;
+run_query(TSNode root_node, const std::string &query_string) {
+  uint32_t error_offset = 0;
+  TSQueryError error_type;
 
   TSQuery *query = ts_query_new(tree_sitter_yaml(), query_string.c_str(),
-                                query_string.size(), &errorOffset, &errorType);
+                                query_string.size(), &error_offset, &error_type);
 
-  if (errorType != TSQueryErrorNone) {
-    std::cerr << "Error while creating query: " << errorType << std::endl;
+  if (error_type != TSQueryErrorNone) {
+    std::cerr << "Error while creating query: " << error_type << std::endl;
   }
 
   TSQueryCursor *query_cursor = ts_query_cursor_new();
@@ -51,12 +51,11 @@ run_query(TSNode root_node, const std::string &query_string, TSParser *parser) {
 
   std::vector<TSQueryCapture> captures;
 
-  uint32_t capture_index;
+  uint32_t capture_index = 0;
   TSQueryMatch match;
 
   while (ts_query_cursor_next_capture(query_cursor, &match, &capture_index)) {
     TSQueryCapture capture = match.captures[capture_index];
-    const auto pattern = match.pattern_index;
     captures.push_back(capture);
   }
 
@@ -93,9 +92,8 @@ bool is_cursor_within_node(TSNode node, const lsp::Position &pos) {
 }
 
 // Function to check if the current node is part of the 'mixins' block
-bool is_mixins_root_node(TSNode root_node, TSParser *parser,
-                         const std::string &doc, const lsp::Position &pos) {
-  auto captures = run_query(root_node, mixins_node_query, parser);
+bool is_mixins_root_node(TSNode root_node, const std::string &doc, const lsp::Position &pos) {
+  auto captures = run_query(root_node, mixins_node_query);
 
   for (const auto &capture : captures) {
     TSNode captured_node = capture.node;
@@ -116,10 +114,8 @@ bool is_mixins_root_node(TSNode root_node, TSParser *parser,
 
 // Function to extract the filename from the 'mixins' block if the cursor is in
 // that context
-std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
-                                            const std::string &yaml_content,
-                                            int cursor_line) {
-  auto captures = run_query(root_node, mixins_node_query, parser);
+std::optional<std::string> extract_filename(TSNode root_node, const std::string &yaml_content, const lsp::Position &pos) {
+  auto captures = run_query(root_node, mixins_node_query);
 
   for (const auto &capture : captures) {
     TSNode captured_node = capture.node;
@@ -132,7 +128,7 @@ std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
       TSPoint start_point = ts_node_start_point(captured_node);
       TSPoint end_point = ts_node_end_point(captured_node);
 
-      if (cursor_line == start_point.row && cursor_line == end_point.row) {
+      if (pos.line == start_point.row && pos.line == end_point.row) {
         // Extract the filename
         return get_node_text(captured_node, yaml_content);
       }
@@ -171,10 +167,10 @@ State::definition(const std::string &uri, const lsp::Position &position) {
 
   logger.log(fmt::format("Parsed doc {}", uri));
 
-  if (is_mixins_root_node(root_node, parser, doc, position)) {
+  if (is_mixins_root_node(root_node, doc, position)) {
     // TODO: support remote files
     std::optional<std::string> filename =
-        extract_filename(root_node, parser, doc, position.line);
+        extract_filename(root_node, doc, position);
     if (filename) {
       auto new_uri = go_to_def_filename(uri, *filename);
       return lsp::DefinitionResult{lsp::Location{

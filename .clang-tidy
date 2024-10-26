@@ -1,6 +1,6 @@
 ---
-Checks: '-*,modernize-*'
-WarningsAsErrors: '*'
+Checks: '-*,modernize-*,-modernize-use-trailing-return-type,clang-analyzer-*,bugprone-*,cppcoreguidelines-*,misc-*,performance-*,readability-*'
+WarningsAsErrors: ''
 HeaderFileExtensions:
   - ''
   - h
@@ -15,4 +15,6 @@ ImplementationFileExtensions:
 HeaderFilterRegex: ''
 FormatStyle: none
 SystemHeaders: false
-
+CheckOptions:
+  - key: readability-identifier-length.MinIdentifierLength
+    value: '1'         # Minimum length for any identifier (e.g., "i" would fail)
