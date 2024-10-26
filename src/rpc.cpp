@@ -23,9 +23,8 @@ std::string Connection::read_content(const lsp::MessageHeader &header) {
   std::string content;
   content.resize(header.content_length);
   in->read(&content[0], header.content_length);
-  logger.log(
-      "Got message: Content-Length: " + std::to_string(header.content_length) +
-      "\r\n\r\n" + content);
+  logger.log("Got message: Content-Length: " +
+             std::to_string(header.content_length) + "\r\n\r\n" + content);
 
   return content;
 }

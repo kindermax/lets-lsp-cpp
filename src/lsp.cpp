@@ -3,7 +3,7 @@
 namespace lsp {
 
 // Parse bytes into json and construct a concrete subclass of Message
-std::unique_ptr<Message> Message::parse(const std::string& msg) {
+std::unique_ptr<Message> Message::parse(const std::string &msg) {
   json data = json::parse(msg);
   if (data.contains("method")) {
     auto method = data["method"].get<std::string>();
@@ -35,11 +35,7 @@ json ResponseMessage::to_json() const {
 }
 
 json NotificationMessage::to_json() const {
-  return json{
-      {"jsonrpc", "2.0"},
-      {"method", method},
-      {"params", data}
-  };
+  return json{{"jsonrpc", "2.0"}, {"method", method}, {"params", data}};
 }
 
 json InitializeResponse::to_json() const {
@@ -47,25 +43,105 @@ json InitializeResponse::to_json() const {
   data["result"] = {
       {"capabilities",
        {
-           {"textDocumentSync", 1} // 1 == Full
+           {"textDocumentSync", 1}, // 1 == Full
+           {"hoverProvider", true},
+           {"definitionProvider", true},
        }},
       {"serverInfo", {{"name", "lets-ls"}, {"version", "0.1.0"}}}};
 
   return data;
 }
 
+json HoverResponse::to_json() const {
+  json data = ResponseMessage::to_json();
+
+  if (result) {
+    data["result"] = result.value();
+  } else {
+    data["result"] = nullptr;
+  }
+
+  return data;
+}
+
+void to_json(json &j, const HoverResult &result) {
+  j = json{{"contents", result.contents}};
+}
+
+json DefinitionResponse::to_json() const {
+  json data = ResponseMessage::to_json();
+
+  if (result) {
+    data["result"] = result.value();
+  } else {
+    data["result"] = nullptr;
+  }
+
+  return data;
+}
+
+void to_json(json &j, const DefinitionResult &result) { j = result.location; }
+
+void to_json(json &j, const Location &loc) {
+  j = json{{"uri", loc.uri}, {"range", loc.range}};
+}
+
+void to_json(json &j, const Range &range) {
+  j = json{{"start", range.start}, {"end", range.end}};
+}
+
+void to_json(json &j, const Position &pos) {
+  j = json{{"line", pos.line}, {"character", pos.character}};
+}
+
 void from_json(const json &j, InitializeParams &params) {
-    const json &client_info = j.at("params").at("clientInfo");
-    client_info.at("name").get_to(params.client_info.name);
-    client_info.at("version").get_to(params.client_info.version);
+  const json &client_info = j.at("params").at("clientInfo");
+  client_info.at("name").get_to(params.client_info.name);
+  client_info.at("version").get_to(params.client_info.version);
+}
+
+void from_json(const json &j, TextDocumentItem &item) {
+  j.at("uri").get_to(item.uri);
+  j.at("languageId").get_to(item.language_id);
+  j.at("version").get_to(item.version);
+  j.at("text").get_to(item.text);
 }
 
 void from_json(const json &j, DidOpenTextDocumentParams &params) {
-  const json &text_document = j.at("params").at("textDocument");
-  text_document.at("uri").get_to(params.text_document_item.uri);
-  text_document.at("languageId").get_to(params.text_document_item.language_id);
-  text_document.at("version").get_to(params.text_document_item.version);
-  text_document.at("text").get_to(params.text_document_item.text);
+  j.at("params").at("textDocument").get_to(params.text_document_item);
+}
+
+void from_json(const json &j, DidChangeTextDocumentParams &params) {
+  j.at("params").at("textDocument").get_to(params.text_document);
+  j.at("params").at("contentChanges").get_to(params.content_changes);
+}
+
+void from_json(const json &j, TextDocumentContentChangeEvent &event) {
+  j.at("text").get_to(event.text);
+}
+
+void from_json(const json &j, VersionedTextDocumentIdentifier &identifier) {
+  j.at("uri").get_to(identifier.uri);
+  j.at("version").get_to(identifier.version);
+}
+
+void from_json(const json &j, HoverParams &params) {
+  j.at("params").at("textDocument").get_to(params.text_document);
+  j.at("params").at("position").get_to(params.position);
+}
+
+void from_json(const json &j, DefinitionParams &params) {
+  j.at("params").at("textDocument").get_to(params.text_document);
+  j.at("params").at("position").get_to(params.position);
+}
+
+void from_json(const json &j, TextDocumentIdentifier &identifier) {
+  j.at("uri").get_to(identifier.uri);
+}
+
+void from_json(const json &j, Position &pos) {
+  j.at("line").get_to(pos.line);
+  j.at("character").get_to(pos.character);
 }
 
 } // namespace lsp

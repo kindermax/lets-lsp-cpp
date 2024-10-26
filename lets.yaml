@@ -1,4 +1,29 @@
 shell: bash
 commands:
+  build: |
+    if [[ ! -d build ]]; then
+      cmake -Bbuild
+    fi
+
+    cmake --build build
+
   test:
-    cmd: cmake --build build && ctest --test-dir build --output-on-failure -j4
+    description: Run tests with CTest
+    options: |
+      Usage: lets test
+    depends:
+      - build
+    cmd: ctest --test-dir build --output-on-failure -j4
+
+  lint:
+    depends:
+      - build
+    cmd: [clang-tidy, -p, build, src/*.cpp]
+
+  lint-file:
+    depends:
+      - build
+    cmd: [clang-tidy, -p, build]
+
+  fmt:
+    cmd: clang-format -i src/**.cpp include/**.h
