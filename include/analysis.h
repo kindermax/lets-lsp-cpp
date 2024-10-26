@@ -4,6 +4,8 @@
 #include <map>
 #include <optional>
 
+#include "tree_sitter/api.h"
+
 #include "log.h"
 #include "lsp.h"
 
@@ -23,4 +25,10 @@ public:
   definition(const std::string &uri, const lsp::Position &position);
 };
 
+bool is_mixins_root_node(TSNode root_node, TSParser *parser,
+                         const std::string &doc, const lsp::Position &position);
+
+std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
+                                            const std::string &yaml_content,
+                                            int cursor_line);
 #endif

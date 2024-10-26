@@ -124,12 +124,18 @@ std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
   for (const auto &capture : captures) {
     TSNode captured_node = capture.node;
 
-    TSPoint start_point = ts_node_start_point(captured_node);
-    TSPoint end_point = ts_node_end_point(captured_node);
+    TSNode parent = ts_node_parent(captured_node);
 
-    if (cursor_line >= start_point.row && cursor_line <= end_point.row) {
-      // Extract the filename
-      return get_node_text(captured_node, yaml_content);
+    if (!ts_node_is_null(parent) &&
+        strcmp(ts_node_type(parent), "block_sequence_item") == 0) {
+
+      TSPoint start_point = ts_node_start_point(captured_node);
+      TSPoint end_point = ts_node_end_point(captured_node);
+
+      if (cursor_line == start_point.row && cursor_line == end_point.row) {
+        // Extract the filename
+        return get_node_text(captured_node, yaml_content);
+      }
     }
   }
   return std::nullopt;
@@ -140,6 +146,8 @@ std::string go_to_def_filename(const std::string &uri,
   auto dir = std::filesystem::path(uri).parent_path();
   return dir / filename;
 }
+
+// TODO create Parser class with destructor to cleanup
 
 /**
  * Handle go to definition for:
@@ -164,6 +172,7 @@ State::definition(const std::string &uri, const lsp::Position &position) {
   logger.log(fmt::format("Parsed doc {}", uri));
 
   if (is_mixins_root_node(root_node, parser, doc, position)) {
+    // TODO: support remote files
     std::optional<std::string> filename =
         extract_filename(root_node, parser, doc, position.line);
     if (filename) {

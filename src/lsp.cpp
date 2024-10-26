@@ -114,12 +114,6 @@ void from_json(const json &j, DidOpenTextDocumentParams &params) {
 void from_json(const json &j, DidChangeTextDocumentParams &params) {
   j.at("params").at("textDocument").get_to(params.text_document);
   j.at("params").at("contentChanges").get_to(params.content_changes);
-
-  // for (const auto& item : j.at("params").at("contentChanges")) {
-  //       DidChangeTextDocumentParams::TextDocumentContentChangeEvent event;
-  //       from_json(item, event);
-  //       params.content_changes.push_back(event);
-  //   }
 }
 
 void from_json(const json &j, TextDocumentContentChangeEvent &event) {

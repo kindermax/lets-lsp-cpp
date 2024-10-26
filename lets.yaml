@@ -4,4 +4,8 @@ commands:
     description: Run tests with CTest
     options: |
       Usage: lets test
-    cmd: cmake --build build && ctest --test-dir build --output-on-failure -j4
+    depends:
+      - build
+    cmd: ctest --test-dir build --output-on-failure -j4
+
+  build: cmake --build build

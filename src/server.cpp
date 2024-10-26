@@ -74,17 +74,6 @@ void Server::handle_notification(const lsp::NotificationMessage &message) {
     for (auto const &change : params.content_changes) {
       state.update_document(params.text_document.uri, change.text);
     }
-
-    // for (auto it = params.content_changes.begin(); it !=
-    // params.content_changes.end(); ++it) {
-
-    // }
-    // std::vector<lsp::DidChangeTextDocumentParams::TextDocumentContentChangeEvent>::iterator
-    // it = params.content_changes.begin();
-    // std::for_each(params.content_changes.begin(),
-    // params.content_changes.end(), [](const auto& event) {
-
-    // });
   } else {
     logger.log("Unknown method ", message.method);
   }
