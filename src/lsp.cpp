@@ -47,7 +47,7 @@ json InitializeResponse::to_json() const {
            {"hoverProvider", true},
            {"definitionProvider", true},
        }},
-      {"serverInfo", {{"name", "lets_ls"}, {"version", "0.1.0"}}}};
+      {"serverInfo", {{"name", "lets-ls"}, {"version", "0.1.0"}}}};
 
   return data;
 }
@@ -83,8 +83,7 @@ json DefinitionResponse::to_json() const {
 void to_json(json &j, const DefinitionResult &result) { j = result.location; }
 
 void to_json(json &j, const Location &loc) {
-  j = json{{"uri", loc.uri},
-           {"range", {{"start", loc.range.start}, {"end", loc.range.end}}}};
+  j = json{{"uri", loc.uri}, {"range", loc.range}};
 }
 
 void to_json(json &j, const Range &range) {
