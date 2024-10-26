@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -76,17 +77,38 @@ const std::string mixins_node_query = R"(
   )
 )";
 
+std::string get_node_text(TSNode node, const std::string &doc) {
+  uint32_t start_byte = ts_node_start_byte(node);
+  uint32_t end_byte = ts_node_end_byte(node);
+  return doc.substr(start_byte, end_byte - start_byte);
+}
+
+// Function to check if the cursor is within a node
+bool is_whithin_node(TSNode node, const lsp::Position &pos) {
+  TSPoint start_point = ts_node_start_point(node);
+  TSPoint end_point = ts_node_end_point(node);
+  return pos.line >= start_point.row && pos.line <= end_point.row &&
+         pos.character >= start_point.column &&
+         pos.character <= end_point.column;
+}
+
 // Function to check if the current node is part of the 'mixins' block
-bool is_mixins_root_node(TSNode root_node, TSParser *parser, int cursor_line) {
+bool is_mixins_root_node(TSNode root_node, TSParser *parser,
+                         const std::string &doc, const lsp::Position &pos) {
   auto captures = run_query(root_node, mixins_node_query, parser);
 
   for (const auto &capture : captures) {
     TSNode captured_node = capture.node;
 
-    TSPoint start_point = ts_node_start_point(captured_node);
-    TSPoint end_point = ts_node_end_point(captured_node);
-    if (cursor_line >= start_point.row && cursor_line <= end_point.row) {
-      return true;
+    TSNode parent = ts_node_parent(captured_node);
+
+    if (!ts_node_is_null(parent) &&
+        strcmp(ts_node_type(parent), "block_mapping_pair") == 0 &&
+        get_node_text(captured_node, doc) == "mixins") {
+
+      if (is_whithin_node(parent, pos)) {
+        return true;
+      }
     }
   }
   return false;
@@ -97,7 +119,6 @@ bool is_mixins_root_node(TSNode root_node, TSParser *parser, int cursor_line) {
 std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
                                             const std::string &yaml_content,
                                             int cursor_line) {
-  // Run the query to find filenames in the 'mixins' block
   auto captures = run_query(root_node, mixins_node_query, parser);
 
   for (const auto &capture : captures) {
@@ -106,13 +127,9 @@ std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
     TSPoint start_point = ts_node_start_point(captured_node);
     TSPoint end_point = ts_node_end_point(captured_node);
 
-    // Check if the cursor is on the correct line (within the flow node
-    // representing the filename)
     if (cursor_line >= start_point.row && cursor_line <= end_point.row) {
       // Extract the filename
-      uint32_t start_byte = ts_node_start_byte(captured_node);
-      uint32_t end_byte = ts_node_end_byte(captured_node);
-      return yaml_content.substr(start_byte, end_byte - start_byte);
+      return get_node_text(captured_node, yaml_content);
     }
   }
   return std::nullopt;
@@ -120,9 +137,8 @@ std::optional<std::string> extract_filename(TSNode root_node, TSParser *parser,
 
 std::string go_to_def_filename(const std::string &uri,
                                const std::string &filename) {
-  std::size_t last_slash_pos = uri.find_last_of("/");
-  std::string dir = uri.substr(0, last_slash_pos + 1);
-  return dir + filename;
+  auto dir = std::filesystem::path(uri).parent_path();
+  return dir / filename;
 }
 
 /**
@@ -145,10 +161,9 @@ State::definition(const std::string &uri, const lsp::Position &position) {
       ts_parser_parse_string(parser, nullptr, doc.c_str(), doc.length());
   TSNode root_node = ts_tree_root_node(tree);
 
-  logger.log("Parsed doc");
+  logger.log(fmt::format("Parsed doc {}", uri));
 
-  if (is_mixins_root_node(root_node, parser, position.line)) {
-    // Try to extract the filename from the 'mixins' block
+  if (is_mixins_root_node(root_node, parser, doc, position)) {
     std::optional<std::string> filename =
         extract_filename(root_node, parser, doc, position.line);
     if (filename) {
