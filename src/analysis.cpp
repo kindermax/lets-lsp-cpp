@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <ostream>
 #include <string>
-#include <algorithm>
 
 #include <tree_sitter/api.h>
 
@@ -16,11 +16,12 @@ extern "C" {
 TSLanguage *tree_sitter_yaml();
 }
 
-void State::open_document(const std::string& uri, const std::string& content) {
+void State::open_document(const std::string &uri, const std::string &content) {
   documents[uri] = content;
 }
 
-void State::update_document(const std::string& uri, const std::string& content) {
+void State::update_document(const std::string &uri,
+                            const std::string &content) {
   documents[uri] = content;
 }
 
@@ -34,13 +35,14 @@ std::optional<lsp::HoverResult> State::hover(const std::string &uri,
   return lsp::HoverResult{fmt::format("URI: {}, Size: {}", uri, doc.size())};
 };
 
-std::vector<TSQueryCapture>
-run_query(TSNode root_node, const std::string &query_string) {
+std::vector<TSQueryCapture> run_query(TSNode root_node,
+                                      const std::string &query_string) {
   uint32_t error_offset = 0;
   TSQueryError error_type;
 
-  TSQuery *query = ts_query_new(tree_sitter_yaml(), query_string.c_str(),
-                                query_string.size(), &error_offset, &error_type);
+  TSQuery *query =
+      ts_query_new(tree_sitter_yaml(), query_string.c_str(),
+                   query_string.size(), &error_offset, &error_type);
 
   if (error_type != TSQueryErrorNone) {
     std::cerr << "Error while creating query: " << error_type << std::endl;
@@ -99,31 +101,36 @@ bool is_cursor_at_line(TSNode node, const lsp::Position &pos) {
 }
 
 // Function to check if the current node is part of the 'mixins' block
-bool is_mixins_root_node(TSNode root_node, const std::string &doc, const lsp::Position &pos) {
+bool is_mixins_root_node(TSNode root_node, const std::string &doc,
+                         const lsp::Position &pos) {
   auto captures = run_query(root_node, mixins_node_query);
 
-  return std::any_of(captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
-    const TSNode captured_node = capture.node;
-    const TSNode parent = ts_node_parent(captured_node);
-    return !ts_node_is_null(parent) 
-      && strcmp(ts_node_type(parent), "block_mapping_pair") == 0 
-      && get_node_text(captured_node, doc) == "mixins"
-      && is_cursor_within_node(parent, pos);
-  });
+  return std::any_of(
+      captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
+        const TSNode captured_node = capture.node;
+        const TSNode parent = ts_node_parent(captured_node);
+        return !ts_node_is_null(parent) &&
+               strcmp(ts_node_type(parent), "block_mapping_pair") == 0 &&
+               get_node_text(captured_node, doc) == "mixins" &&
+               is_cursor_within_node(parent, pos);
+      });
 }
 
 // Function to extract the filename from the 'mixins' block if the cursor is in
 // that context
-std::optional<std::string> extract_filename(TSNode root_node, const std::string &yaml_content, const lsp::Position &pos) {
+std::optional<std::string> extract_filename(TSNode root_node,
+                                            const std::string &yaml_content,
+                                            const lsp::Position &pos) {
   auto captures = run_query(root_node, mixins_node_query);
 
-  auto it = std::find_if(captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
-    const TSNode captured_node = capture.node;
-    const TSNode parent = ts_node_parent(captured_node);
-    return !ts_node_is_null(parent) 
-      && strcmp(ts_node_type(parent), "block_sequence_item") == 0 
-      && is_cursor_at_line(captured_node, pos);
-  });
+  auto it = std::find_if(
+      captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
+        const TSNode captured_node = capture.node;
+        const TSNode parent = ts_node_parent(captured_node);
+        return !ts_node_is_null(parent) &&
+               strcmp(ts_node_type(parent), "block_sequence_item") == 0 &&
+               is_cursor_at_line(captured_node, pos);
+      });
 
   if (it != captures.cend()) {
     return get_node_text(it->node, yaml_content);
