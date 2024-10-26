@@ -84,7 +84,7 @@ std::string get_node_text(TSNode node, const std::string &doc) {
 }
 
 // Function to check if the cursor is within a node
-bool is_whithin_node(TSNode node, const lsp::Position &pos) {
+bool is_cursor_within_node(TSNode node, const lsp::Position &pos) {
   TSPoint start_point = ts_node_start_point(node);
   TSPoint end_point = ts_node_end_point(node);
   return pos.line >= start_point.row && pos.line <= end_point.row &&
@@ -106,7 +106,7 @@ bool is_mixins_root_node(TSNode root_node, TSParser *parser,
         strcmp(ts_node_type(parent), "block_mapping_pair") == 0 &&
         get_node_text(captured_node, doc) == "mixins") {
 
-      if (is_whithin_node(parent, pos)) {
+      if (is_cursor_within_node(parent, pos)) {
         return true;
       }
     }
