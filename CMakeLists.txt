@@ -93,8 +93,9 @@ target_link_libraries(${PROJECT_NAME}
 
 # Testing
 include(CTest)
-enable_testing()
-add_subdirectory(tests)
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()
 
 # Packaging
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

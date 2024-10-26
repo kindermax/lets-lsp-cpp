@@ -1,6 +1,7 @@
 #ifndef LETS_LSP_LSP_H
 #define LETS_LSP_LSP_H
 
+#include <optional>
 #include <string>
 #include <variant>
 

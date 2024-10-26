@@ -20,8 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        shared: [true, false]
+        os: [ubuntu-24.04, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Lets
@@ -30,7 +29,16 @@ jobs:
           version: latest
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Config shared=${{ matrix.shared }}
-        run: cmake -Bbuild -DBUILD_SHARED_LIBS=${{ matrix.shared }}
       - name: Run tests
         run: lets test
+  lints:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Lets
+        uses: lets-cli/lets-action@v1.1
+        with:
+          version: latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run linter
+        run: lets lint

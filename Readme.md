@@ -14,6 +14,45 @@
 
 ## Development
 
+On `linux` install build dependencies:
+
+```bash
+apt-get install -y \
+  build-essential \
+  cmake \
+  git
+```
+
+Optional dependencies:
+
+```bash
+apt-get intstall -y clang-tidy  # need 18 version
+```
+
+On `macos` install build dependencies:
+
+```bash
+brew install cmake
+brew install git
+```
+
+Optional dependencies:
+
+`clang-tidy` and `clang-format` are not available directly via brew, but we can install them via llvm:
+
+```bash
+brew install llvm
+```
+
+Next we need to add `clang-tidy` and `clang-format` to the `PATH`:
+
+```bash
+# or change BIN_DIR to your own bin dir
+BIN_DIR=/usr/local/bin
+ln -s "$(brew --prefix llvm)/bin/clang-tidy" "${BIN_DIR}"
+ln -s "$(brew --prefix llvm)/bin/clang-format" "${BIN_DIR}"
+```
+
 ### Build and run
 
 ```bash
