@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <algorithm>
 
 #include <tree_sitter/api.h>
 
@@ -19,8 +20,8 @@ void State::open_document(const std::string& uri, const std::string& content) {
   documents[uri] = content;
 }
 
-void State::update_document(const std::string uri, const std::string content) {
-  documents[std::move(uri)] = std::move(content);
+void State::update_document(const std::string& uri, const std::string& content) {
+  documents[uri] = content;
 }
 
 std::optional<lsp::HoverResult> State::hover(const std::string &uri,
@@ -91,25 +92,24 @@ bool is_cursor_within_node(TSNode node, const lsp::Position &pos) {
          pos.character <= end_point.column;
 }
 
+bool is_cursor_at_line(TSNode node, const lsp::Position &pos) {
+  TSPoint start_point = ts_node_start_point(node);
+  TSPoint end_point = ts_node_end_point(node);
+  return pos.line == start_point.row && pos.line == end_point.row;
+}
+
 // Function to check if the current node is part of the 'mixins' block
 bool is_mixins_root_node(TSNode root_node, const std::string &doc, const lsp::Position &pos) {
   auto captures = run_query(root_node, mixins_node_query);
 
-  for (const auto &capture : captures) {
-    TSNode captured_node = capture.node;
-
-    TSNode parent = ts_node_parent(captured_node);
-
-    if (!ts_node_is_null(parent) &&
-        strcmp(ts_node_type(parent), "block_mapping_pair") == 0 &&
-        get_node_text(captured_node, doc) == "mixins") {
-
-      if (is_cursor_within_node(parent, pos)) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return std::any_of(captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
+    const TSNode captured_node = capture.node;
+    const TSNode parent = ts_node_parent(captured_node);
+    return !ts_node_is_null(parent) 
+      && strcmp(ts_node_type(parent), "block_mapping_pair") == 0 
+      && get_node_text(captured_node, doc) == "mixins"
+      && is_cursor_within_node(parent, pos);
+  });
 }
 
 // Function to extract the filename from the 'mixins' block if the cursor is in
@@ -117,23 +117,18 @@ bool is_mixins_root_node(TSNode root_node, const std::string &doc, const lsp::Po
 std::optional<std::string> extract_filename(TSNode root_node, const std::string &yaml_content, const lsp::Position &pos) {
   auto captures = run_query(root_node, mixins_node_query);
 
-  for (const auto &capture : captures) {
-    TSNode captured_node = capture.node;
+  auto it = std::find_if(captures.cbegin(), captures.cend(), [&](const TSQueryCapture &capture) {
+    const TSNode captured_node = capture.node;
+    const TSNode parent = ts_node_parent(captured_node);
+    return !ts_node_is_null(parent) 
+      && strcmp(ts_node_type(parent), "block_sequence_item") == 0 
+      && is_cursor_at_line(captured_node, pos);
+  });
 
-    TSNode parent = ts_node_parent(captured_node);
-
-    if (!ts_node_is_null(parent) &&
-        strcmp(ts_node_type(parent), "block_sequence_item") == 0) {
-
-      TSPoint start_point = ts_node_start_point(captured_node);
-      TSPoint end_point = ts_node_end_point(captured_node);
-
-      if (pos.line == start_point.row && pos.line == end_point.row) {
-        // Extract the filename
-        return get_node_text(captured_node, yaml_content);
-      }
-    }
+  if (it != captures.cend()) {
+    return get_node_text(it->node, yaml_content);
   }
+
   return std::nullopt;
 }
 

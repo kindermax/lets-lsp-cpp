@@ -9,6 +9,7 @@ using json = nlohmann::json;
 
 class Logger {
 public:
+  virtual ~Logger() = default;
   virtual void log(const std::string &msg) = 0;
   virtual void log(const std::string &msg, const json &data) = 0;
 };
@@ -16,9 +17,10 @@ public:
 // FileLogger is a logger that writes to a file.
 class FileLogger : public Logger {
 public:
+  virtual ~FileLogger() = default;
   explicit FileLogger(const std::string &filename);
-  void log(const std::string &msg);
-  void log(const std::string &msg, const json &data);
+  void log(const std::string &msg) override;
+  void log(const std::string &msg, const json &data) override;
 
 private:
   std::string filename;
@@ -28,8 +30,9 @@ private:
 // NullLogger is a logger that does nothing.
 class NullLogger : public Logger {
 public:
-  void log(const std::string &msg);
-  void log(const std::string &msg, const json &data);
+  virtual ~NullLogger() = default;
+  void log(const std::string &msg) override;
+  void log(const std::string &msg, const json &data) override;
 };
 
 #endif
