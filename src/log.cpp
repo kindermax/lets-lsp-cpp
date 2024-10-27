@@ -19,5 +19,5 @@ void FileLogger::log(const std::string &msg, const json &data) {
   logfile << msg << " " << data.dump() << std::endl;
 }
 
-void NullLogger::log(const std::string &msg) {}
-void NullLogger::log(const std::string &msg, const json &data) {}
+void NullLogger::log(const std::string & /*msg*/) {}
+void NullLogger::log(const std::string & /*msg*/, const json & /*data*/) {}

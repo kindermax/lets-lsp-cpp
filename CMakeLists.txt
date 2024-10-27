@@ -20,6 +20,8 @@ set(BIN_SOURCES
 
 add_executable(${PROJECT_NAME} ${BIN_SOURCES})
 
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+
 # Dependencies
 include(FetchContent)
 
